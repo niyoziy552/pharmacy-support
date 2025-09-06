@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Dorixona Muammo Xabarlari</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h2 { margin-top: 20px; }
+    input, select, textarea, button { display: block; margin: 10px 0; padding: 8px; width: 100%; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  </style>
+</head>
+<body>
+  <!-- Language Selector -->
+  <label for="lang">Language / Til / Язык:</label>
+  <select id="lang" onchange="setLanguage(this.value)">
+    <option value="uz">O'zbek</option>
+    <option value="ru">Русский</option>
+    <option value="en">English</option>
+  </select>
+
+  <h2 data-i18n="report_issue">Muammo haqida xabar berish</h2>
+
+  <input type="text" id="shop" placeholder="Dorixona nomi" data-placeholder="shop_name">
+
+  <!-- Device Dropdown in Uzbek -->
+  <select id="device">
+    <option value="Kompyuter">Kompyuter</option>
+    <option value="Kamera">Kamera</option>
+    <option value="Terminal">Terminal</option>
+    <option value="Chek apparat">Chek apparat</option>
+    <option value="Skaner">Skaner</option>
+    <option value="WiFi">Wi-Fi</option>
+    <option value="Boshqa">Boshqa</option>
+  </select>
+
+  <textarea id="description" placeholder="Tavsif" data-placeholder="description"></textarea>
+  <button onclick="sendReport()" data-i18n="submit">Yuborish</button>
+
+  <h2 data-i18n="all_reports">Barcha xabarlar</h2>
+  <table id="reportsTable">
+    <thead>
+      <tr>
+        <th data-i18n="shop">Dorixona</th>
+        <th data-i18n="device">Qurilma</th>
+        <th data-i18n="description">Tavsif</th>
+        <th data-i18n="status">Holati</th>
+        <th data-i18n="reported_at">Yuborilgan vaqt</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    // Translations
+    const translations = {
+      uz: {
+        report_issue: "Muammo haqida xabar berish",
+        shop_name: "Dorixona nomi",
+        description: "Tavsif",
+        submit: "Yuborish",
+        all_reports: "Barcha xabarlar",
+        shop: "Dorixona",
+        device: "Qurilma",
+        status: "Holati",
+        reported_at: "Yuborilgan vaqt",
+        status_Pending: "Kutilmoqda",
+        status_Completed: "Yakunlandi"
+      },
+      ru: {
+        report_issue: "Сообщить о проблеме",
+        shop_name: "Название аптеки",
+        description: "Описание",
+        submit: "Отправить",
+        all_reports: "Все сообщения",
+        shop: "Аптека",
+        device: "Устройство",
+        status: "Статус",
+        reported_at: "Время отправки",
+        status_Pending: "В ожидании",
+        status_Completed: "Завершено"
+      },
+      en: {
+        report_issue: "Report an Issue",
+        shop_name: "Shop name",
+        description: "Description",
+        submit: "Submit",
+        all_reports: "All Reports",
+        shop: "Shop",
+        device: "Device",
+        status: "Status",
+        reported_at: "Reported At",
+        status_Pending: "Pending",
+        status_Completed: "Completed"
+      }
+    };
+
+    let currentLang = "uz";
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        el.innerText = translations[lang][el.dataset.i18n];
+      });
+      document.querySelectorAll("[data-placeholder]").forEach(el => {
+        el.placeholder = translations[lang][el.dataset.placeholder];
+      });
+      loadReports();
+    }
+
+    async function sendReport() {
+      const shop = document.getElementById("shop").value;
+      const device = document.getElementById("device").value;
+      const description = document.getElementById("description").value;
+
+      await fetch("/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shop, device, description })
+      });
+
+      document.getElementById("description").value = "";
+      loadReports();
+    }
+
+    async function loadReports() {
+      const res = await fetch("/api/reports");
+      const reports = await res.json();
+
+      const tbody = document.querySelector("#reportsTable tbody");
+      tbody.innerHTML = "";
+
+      reports.forEach(r => {
+        const row = `<tr>
+          <td>${r.shop}</td>
+          <td>${r.device}</td>
+          <td>${r.description}</td>
+          <td>${translations[currentLang]["status_" + r.status]}</td>
+          <td>${r.reportedAt}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    setLanguage("uz");
+    loadReports();
+  </script>
+</body>
+</html>
+
