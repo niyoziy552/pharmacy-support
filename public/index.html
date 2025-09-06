@@ -2,150 +2,179 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <title>Dorixona Muammo Xabarlari</title>
+  <title>Pharmacy Support</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
-    h2 { margin-top: 20px; }
-    input, select, textarea, button { display: block; margin: 10px 0; padding: 8px; width: 100%; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    label { display: block; margin-top: 10px; }
+    input, select, textarea, button { margin-top: 5px; padding: 5px; width: 100%; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    .lang-btn { margin-right: 10px; }
   </style>
 </head>
 <body>
-  <!-- Language Selector -->
-  <label for="lang">Language / Til / Язык:</label>
-  <select id="lang" onchange="setLanguage(this.value)">
-    <option value="uz">O'zbek</option>
-    <option value="ru">Русский</option>
-    <option value="en">English</option>
-  </select>
+  <h2 id="title">Muammo haqida xabar berish</h2>
 
-  <h2 data-i18n="report_issue">Muammo haqida xabar berish</h2>
+  <button class="lang-btn" onclick="setLang('uz')">UZ</button>
+  <button class="lang-btn" onclick="setLang('ru')">RU</button>
+  <button class="lang-btn" onclick="setLang('en')">EN</button>
 
-  <input type="text" id="shop" placeholder="Dorixona nomi" data-placeholder="shop_name">
+  <form id="reportForm">
+    <label for="shop" id="shopLabel">Dorixona nomi:</label>
+    <input type="text" id="shop" placeholder="Shop name">
 
-  <!-- Device Dropdown in Uzbek -->
-  <select id="device">
-    <option value="Kompyuter">Kompyuter</option>
-    <option value="Kamera">Kamera</option>
-    <option value="Terminal">Terminal</option>
-    <option value="Chek apparat">Chek apparat</option>
-    <option value="Skaner">Skaner</option>
-    <option value="WiFi">Wi-Fi</option>
-    <option value="Boshqa">Boshqa</option>
-  </select>
+    <label for="device" id="deviceLabel">Qurilma:</label>
+    <select id="device">
+      <option value="Kompyuter">Kompyuter</option>
+      <option value="Kamera">Kamera</option>
+      <option value="Terminal">Terminal</option>
+      <option value="Chek apparat">Chek apparat</option>
+      <option value="Skaner">Skaner</option>
+      <option value="WiFi">Wi-Fi</option>
+      <option value="Boshqa">Boshqa</option>
+    </select>
 
-  <textarea id="description" placeholder="Tavsif" data-placeholder="description"></textarea>
-  <button onclick="sendReport()" data-i18n="submit">Yuborish</button>
+    <label for="description" id="descLabel">Tavsif:</label>
+    <textarea id="description"></textarea>
 
-  <h2 data-i18n="all_reports">Barcha xabarlar</h2>
-  <table id="reportsTable">
+    <button type="submit" id="submitBtn">Yuborish</button>
+  </form>
+
+  <h2 id="reportsTitle">Barcha xabarlar</h2>
+  <table>
     <thead>
       <tr>
-        <th data-i18n="shop">Dorixona</th>
-        <th data-i18n="device">Qurilma</th>
-        <th data-i18n="description">Tavsif</th>
-        <th data-i18n="status">Holati</th>
-        <th data-i18n="reported_at">Yuborilgan vaqt</th>
+        <th id="shopCol">Dorixona</th>
+        <th id="deviceCol">Qurilma</th>
+        <th id="descCol">Tavsif</th>
+        <th id="statusCol">Holati</th>
+        <th id="dateCol">Sana</th>
+        <th id="actionCol">Amal</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="reportsTable"></tbody>
   </table>
 
   <script>
-    // Translations
+    let currentLang = "uz";
+
     const translations = {
       uz: {
-        report_issue: "Muammo haqida xabar berish",
-        shop_name: "Dorixona nomi",
-        description: "Tavsif",
-        submit: "Yuborish",
-        all_reports: "Barcha xabarlar",
-        shop: "Dorixona",
-        device: "Qurilma",
-        status: "Holati",
-        reported_at: "Yuborilgan vaqt",
+        title: "Muammo haqida xabar berish",
+        shopLabel: "Dorixona nomi:",
+        deviceLabel: "Qurilma:",
+        descLabel: "Tavsif:",
+        submitBtn: "Yuborish",
+        reportsTitle: "Barcha xabarlar",
+        shopCol: "Dorixona",
+        deviceCol: "Qurilma",
+        descCol: "Tavsif",
+        statusCol: "Holati",
+        dateCol: "Sana",
+        actionCol: "Amal",
         status_Pending: "Kutilmoqda",
-        status_Completed: "Yakunlandi"
+        status_Completed: "Yakunlangan",
+        complete: "Yakunlash"
       },
       ru: {
-        report_issue: "Сообщить о проблеме",
-        shop_name: "Название аптеки",
-        description: "Описание",
-        submit: "Отправить",
-        all_reports: "Все сообщения",
-        shop: "Аптека",
-        device: "Устройство",
-        status: "Статус",
-        reported_at: "Время отправки",
+        title: "Сообщить о проблеме",
+        shopLabel: "Название аптеки:",
+        deviceLabel: "Устройство:",
+        descLabel: "Описание:",
+        submitBtn: "Отправить",
+        reportsTitle: "Все заявки",
+        shopCol: "Аптека",
+        deviceCol: "Устройство",
+        descCol: "Описание",
+        statusCol: "Статус",
+        dateCol: "Дата",
+        actionCol: "Действие",
         status_Pending: "В ожидании",
-        status_Completed: "Завершено"
+        status_Completed: "Завершено",
+        complete: "Завершить"
       },
       en: {
-        report_issue: "Report an Issue",
-        shop_name: "Shop name",
-        description: "Description",
-        submit: "Submit",
-        all_reports: "All Reports",
-        shop: "Shop",
-        device: "Device",
-        status: "Status",
-        reported_at: "Reported At",
+        title: "Report an Issue",
+        shopLabel: "Shop name:",
+        deviceLabel: "Device:",
+        descLabel: "Description:",
+        submitBtn: "Submit",
+        reportsTitle: "All Reports",
+        shopCol: "Shop",
+        deviceCol: "Device",
+        descCol: "Description",
+        statusCol: "Status",
+        dateCol: "Date",
+        actionCol: "Action",
         status_Pending: "Pending",
-        status_Completed: "Completed"
+        status_Completed: "Completed",
+        complete: "Complete"
       }
     };
 
-    let currentLang = "uz";
-
-    function setLanguage(lang) {
+    function setLang(lang) {
       currentLang = lang;
-      document.querySelectorAll("[data-i18n]").forEach(el => {
-        el.innerText = translations[lang][el.dataset.i18n];
-      });
-      document.querySelectorAll("[data-placeholder]").forEach(el => {
-        el.placeholder = translations[lang][el.dataset.placeholder];
-      });
+      document.getElementById("title").innerText = translations[lang].title;
+      document.getElementById("shopLabel").innerText = translations[lang].shopLabel;
+      document.getElementById("deviceLabel").innerText = translations[lang].deviceLabel;
+      document.getElementById("descLabel").innerText = translations[lang].descLabel;
+      document.getElementById("submitBtn").innerText = translations[lang].submitBtn;
+      document.getElementById("reportsTitle").innerText = translations[lang].reportsTitle;
+      document.getElementById("shopCol").innerText = translations[lang].shopCol;
+      document.getElementById("deviceCol").innerText = translations[lang].deviceCol;
+      document.getElementById("descCol").innerText = translations[lang].descCol;
+      document.getElementById("statusCol").innerText = translations[lang].statusCol;
+      document.getElementById("dateCol").innerText = translations[lang].dateCol;
+      document.getElementById("actionCol").innerText = translations[lang].actionCol;
       loadReports();
     }
 
-    async function sendReport() {
-      const shop = document.getElementById("shop").value;
-      const device = document.getElementById("device").value;
-      const description = document.getElementById("description").value;
-
+    document.getElementById("reportForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const report = {
+        shop: document.getElementById("shop").value,
+        device: document.getElementById("device").value,
+        description: document.getElementById("description").value
+      };
       await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shop, device, description })
+        body: JSON.stringify(report)
       });
-
-      document.getElementById("description").value = "";
+      e.target.reset();
       loadReports();
-    }
+    });
 
     async function loadReports() {
       const res = await fetch("/api/reports");
       const reports = await res.json();
-
-      const tbody = document.querySelector("#reportsTable tbody");
-      tbody.innerHTML = "";
-
+      const table = document.getElementById("reportsTable");
+      table.innerHTML = "";
       reports.forEach(r => {
-        const row = `<tr>
+        const row = document.createElement("tr");
+        row.innerHTML = `
           <td>${r.shop}</td>
           <td>${r.device}</td>
           <td>${r.description}</td>
           <td>${translations[currentLang]["status_" + r.status]}</td>
           <td>${r.reportedAt}</td>
-        </tr>`;
-        tbody.innerHTML += row;
+          <td>
+            ${r.status === "Pending" 
+              ? `<button onclick="completeTicket(${r.id})">${translations[currentLang].complete}</button>` 
+              : "✔"}
+          </td>
+        `;
+        table.appendChild(row);
       });
     }
 
-    setLanguage("uz");
-    loadReports();
+    function completeTicket(id) {
+      fetch(`/api/complete/${id}`, { method: "POST" })
+        .then(() => loadReports());
+    }
+
+    setLang("uz");
   </script>
 </body>
 </html>
-
